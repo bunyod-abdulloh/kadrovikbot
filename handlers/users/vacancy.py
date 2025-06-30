@@ -8,6 +8,7 @@ from data.config import ADMINS
 from keyboards.default.users_dkb import vacancy_menu, phone_cb, user_yes_no, main_menu_cb
 from keyboards.inline.admin_ikb import yes_no_ikb
 from loader import dp, kdb, udb
+from services.admin.google_sheets import append_application
 from states.users import AnketaStates
 
 
@@ -121,6 +122,12 @@ async def check_datas(message: types.Message, state: FSMContext):
             f"🔧 Mutaxassisligi: {data['specialty']}\n"
             f"📍 Hudud: {data['region']}, {data['district']}"
         )
+
+        # Google Sheets'ga yozamiz
+        try:
+            append_application(data)
+        except Exception as err:
+            print(f"Sheets'ga yozishda xatolik: {err}")
 
         # UsersDB ga qo'shamiz
         user_id = await udb.add_user(telegram_id=message.from_user.id)

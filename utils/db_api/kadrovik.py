@@ -11,11 +11,9 @@ class KadrovikDB:
         return await self.db.execute(sql, user_id, vacancy, fullname, birthdate, phone, education, specialty, region,
                                      district, execute=True)
 
-    async def delete_book(self, book_id):
-        await self.db.execute("DELETE FROM books WHERE book_id = $1", book_id, execute=True)
-
-    async def delete_book_by_row_id(self, row_id):
-        await self.db.execute("DELETE FROM books WHERE id = $1", row_id, execute=True)
-
-    async def delete_book_not_book_id(self):
-        await self.db.execute(""" DELETE FROM books WHERE book_id IS NULL """, execute=True)
+    async def delete_employee_by_telegram_id(self, telegram_id: str):
+        sql = """
+        DELETE FROM employee
+        WHERE user_id = (SELECT id FROM users WHERE telegram_id = $1)
+        """
+        await self.db.execute(sql, telegram_id, execute=True)

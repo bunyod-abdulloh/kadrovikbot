@@ -1,9 +1,10 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
+from aiogram.utils.exceptions import BotBlocked, ChatNotFound
 from magic_filter import F
 
 from keyboards.inline.admin_ikb import admin_check_ikb
-from loader import dp, bot
+from loader import dp, bot, kdb
 from states.admin import AdminStates
 
 
@@ -44,6 +45,31 @@ async def handle_no_text(message: types.Message, state: FSMContext):
 
 @dp.callback_query_handler(state=AdminStates.CHECK_NO_TEXT)
 async def handle_check_no(call: types.CallbackQuery, state: FSMContext):
+    user_id = call.data.split(":")[1]
+    await kdb.delete_employee_by_telegram_id(telegram_id=user_id)
+
     if call.data.startswith("reenter:"):
-        user_id = call.data.split(":")[1]
+        await handle_vacancy_no(call=call, state=state)
+
+    elif call.data.startswith("admincheck:"):
         data = await state.get_data()
+        try:
+            await bot.send_message(
+                chat_id=user_id,
+                text=f"Arizangiz rad etildi!\n\nSabab:\n{data['no_text']}"
+            )
+        except BotBlocked:
+            await call.message.edit_text(
+                text="Xabar foydalanuvchiga yuborilmadi! Foydalanuvchi botni block qilgan!"
+            )
+            return
+        except ChatNotFound:
+            await call.message.edit_text(
+                text="Xabar foydalanuvchiga yuborilmadi! Foydalanuvchi topilmadi!"
+            )
+            return
+        else:
+            await call.message.edit_text(
+                text="Xabar foydalanuvchiga yuborildi!"
+            )
+        await state.finish()

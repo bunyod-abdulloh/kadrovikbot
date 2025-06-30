@@ -3,8 +3,10 @@ from aiogram.dispatcher import FSMContext
 from aiogram.utils.exceptions import BotBlocked, ChatNotFound
 from magic_filter import F
 
+from data.config import ADMINS
 from keyboards.inline.admin_ikb import admin_check_ikb
 from loader import dp, bot, kdb
+from services.admin.google_sheets import append_application
 from states.admin import AdminStates
 
 
@@ -19,6 +21,13 @@ async def handle_vacancy_yes(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_text(
         text="Ma'lumotlar qabul qilindi va bu haqidagi xabar ariza yuboruvchiga ham jo'natildi!"
     )
+    data = await kdb.get_employee_by_telegram_id(telegram_id=int(user_id))
+
+    # Google Sheets'ga yozamiz
+    try:
+        append_application(data)
+    except Exception as err:
+        await bot.send_message(chat_id=ADMINS[0], text=f"Sheets'ga yozishda xatolik: {err}")
 
 
 @dp.callback_query_handler(F.data.startswith("admin_no:"), state="*")

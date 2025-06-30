@@ -1,3 +1,5 @@
+from datetime import date
+
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -22,7 +24,7 @@ sheet = spreadsheet.sheet1  # 1-sahifa bilan ishlaymiz
 
 def write_headers_if_needed():
     headers = [
-        "Lavozim", "F.I.Sh.", "Tug‘ilgan sana", "Telefon",
+        "Sana", "Lavozim", "F.I.Sh.", "Tug‘ilgan sana", "Telefon",
         "Ma’lumoti", "Mutaxassisligi", "Hudud", "Tuman"
     ]
     first_row = sheet.row_values(1)
@@ -31,20 +33,24 @@ def write_headers_if_needed():
         sheet.insert_row(headers, 1)
 
 
-def append_application(data: dict):
+def append_application(data):
     """
     Ariza ma'lumotlarini yangi qatorda Google Sheets'ga yozadi.
     """
     write_headers_if_needed()
+    created_at = data['created_at']
+    if isinstance(created_at, date):
+        created_at = created_at.isoformat()
 
     row = [
-        data.get("vacancy", ""),
-        data.get("fullname", ""),
-        data.get("birthdate", ""),
-        data.get("phone", ""),
-        data.get("education", ""),
-        data.get("specialty", ""),
-        data.get("region", ""),
-        data.get("district", "")
+        created_at,
+        data['vacancy'],
+        data['fullname'],
+        data['birthdate'],
+        data['phone'],
+        data['education'],
+        data['specialty'],
+        data['region'],
+        data['district']
     ]
     sheet.append_row(row, value_input_option="USER_ENTERED")

@@ -7,8 +7,18 @@ class UsersAdminsDB:
 
     # ====================== USERS ======================
     async def add_user(self, telegram_id):
-        sql = "INSERT INTO users (telegram_id) VALUES ($1) ON CONFLICT (telegram_id) DO NOTHING"
-        await self.db.execute(sql, telegram_id, execute=True)
+        sql = """
+        WITH inserted AS (
+            INSERT INTO users (telegram_id)
+            VALUES ($1)
+            ON CONFLICT (telegram_id) DO NOTHING
+            RETURNING id
+        )
+        SELECT id FROM inserted
+        UNION
+        SELECT id FROM users WHERE telegram_id = $1;
+        """
+        return await self.db.execute(sql, telegram_id, fetchval=True)
 
     async def add_user_to_db(self, telegram_id, full_name):
         sql = """ INSERT INTO users(telegram_id, full_name) VALUES($1, $2) """
@@ -17,7 +27,6 @@ class UsersAdminsDB:
     async def set_full_name(self, full_name, user_id):
         sql = """ UPDATE users SET full_name = $1 WHERE id = $2 """
         await self.db.execute(sql, full_name, user_id, execute=True)
-
 
     async def select_user(self, telegram_id):
         sql = "SELECT id, full_name FROM users WHERE telegram_id = $1"

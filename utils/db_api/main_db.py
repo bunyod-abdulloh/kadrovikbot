@@ -42,6 +42,7 @@ class Database:
             """
             CREATE TABLE IF NOT EXISTS employee (
                 id SERIAL PRIMARY KEY,
+                created_at DATE DEFAULT CURRENT_DATE,
                 user_id INTEGER REFERENCES users(id),
                 vacancy VARCHAR(255) NULL,
                 fullname VARCHAR(255) NULL,                                

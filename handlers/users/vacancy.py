@@ -23,7 +23,8 @@ async def vacancies(message: types.Message, state: FSMContext):
 
 @dp.message_handler(F.text.in_({"🦷 Stomatolog", "👩‍💼 Qabul admini", "🧪 Laborant"}), state="*")
 async def start_job_application(message: types.Message, state: FSMContext):
-    await state.update_data(vacancy=message.text)
+    vacancy = message.text.split(" ", 1)[1]
+    await state.update_data(vacancy=vacancy)
     await message.answer("📝 Iltimos, ism familiyangizni kiriting:\n\nMasalan: *Islomov Anvar*", parse_mode="Markdown")
     await AnketaStates.FULLNAME.set()
 
@@ -122,12 +123,13 @@ async def check_datas(message: types.Message, state: FSMContext):
         )
 
         # UsersDB ga qo'shamiz
-        await udb.add_user(telegram_id=message.from_user.id)
+        user_id = await udb.add_user(telegram_id=message.from_user.id)
 
         # KadrovikDB ga vaqtincha joylab turamiz
         await kdb.add_employee(
-            vacancy=data['vacancy'], fullname=data['fullname'], birthdate=data['birthdate'], phone=data['phone'],
-            education=data['education'], specialty=data['specialty'], region=data['region'], district=['district']
+            user_id=user_id, vacancy=data['vacancy'], fullname=data['fullname'], birthdate=data['birthdate'],
+            phone=data['phone'], education=data['education'], specialty=data['specialty'], region=data['region'],
+            district=data['district']
         )
 
         for admin_id in ADMINS:

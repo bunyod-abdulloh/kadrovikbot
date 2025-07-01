@@ -23,6 +23,8 @@ async def handle_vacancy_yes(call: types.CallbackQuery, state: FSMContext):
     )
     data = await kdb.get_employee_by_telegram_id(telegram_id=int(user_id))
 
+    await kdb.delete_employee_by_telegram_id(telegram_id=int(user_id))
+
     # Google Sheets'ga yozamiz
     try:
         append_application(data)
